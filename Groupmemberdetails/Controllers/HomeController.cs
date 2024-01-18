@@ -1,5 +1,6 @@
 using Groupmemberdetails.Models;
 using Microsoft.AspNetCore.Mvc;
+using MySql.Data.MySqlClient;
 
 namespace Groupmemberdetails.Controllers
 {
@@ -7,7 +8,6 @@ namespace Groupmemberdetails.Controllers
     {
         public IActionResult Index()
         {
-
             var member = DetailsRepository.GetDetails();
             return View(member);
         }

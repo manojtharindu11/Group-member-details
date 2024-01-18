@@ -1,61 +1,109 @@
-﻿namespace Groupmemberdetails.Models
+﻿using MySql.Data.MySqlClient;
+
+namespace Groupmemberdetails.Models
 {
     public class DetailsRepository
     {
-        public static List<Details> _details = new List<Details>()
+        private static string connectionString = "server=localhost;user=root;database=groupdetails;port=3306;password=manoj22561";
+
+        public static List<Details> GetDetails()
         {
-            new Details {IndexNo = 1, Name="Deepthi", Email="deepthi@gmail.com", Age=22 },
-            new Details {IndexNo = 2, Name="Supipi", Email="supipi@gmail.com", Age=25 },
-            new Details {IndexNo = 3, Name="Pramudi", Email="parmudi@gmail.com", Age=28 }
-        };
+            List<Details> details = new List<Details>();
 
-        public static List<Details> GetDetails() => _details;
-
-        public static void UpdateDetails(int  index, Details details)
-        {
-            if (index != details.IndexNo) return;
-
-            var detailsToUpdate = _details.FirstOrDefault(x => x.IndexNo == index);
-
-            if (detailsToUpdate != null)
+            using (MySqlConnection con = new MySqlConnection(connectionString))
             {
-                detailsToUpdate.Name = details.Name;
-                detailsToUpdate.Email = details.Email;
-                detailsToUpdate.Age = details.Age;
+                con.Open();
+                MySqlCommand cmd = new MySqlCommand("SELECT * FROM members", con);
+                MySqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    Details detail = new Details();
+                    detail.IndexNo = Convert.ToInt32(reader["Index"]);
+                    detail.Name = reader["Name"].ToString();
+                    detail.Email = reader["Email"].ToString();
+                    detail.Age = Convert.ToInt32(reader["age"]);
+
+                    details.Add(detail);
+                }
+
+                reader.Close();
+            }
+
+            return details;
+        }
+
+        public static void UpdateDetails(int index, Details details)
+        {
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+                MySqlCommand updateCmd = new MySqlCommand("UPDATE members SET Name = @Name, Email = @Email, Age = @Age WHERE `Index` = @Index", con);
+
+                updateCmd.Parameters.AddWithValue("@Name", details.Name);
+                updateCmd.Parameters.AddWithValue("@Email", details.Email);
+                updateCmd.Parameters.AddWithValue("@Age", details.Age);
+                updateCmd.Parameters.AddWithValue("@Index", details.IndexNo);
+
+
+                int rowsUpdated = updateCmd.ExecuteNonQuery();
+                Console.WriteLine($"{rowsUpdated} row(s) updated.");
             }
         }
 
         public static Details? GetDetailsByIndex(int index)
         {
-            var member = _details.FirstOrDefault(x => (x.IndexNo == index));
-            if (member != null)
+            using (MySqlConnection con = new MySqlConnection(connectionString))
             {
-                return new Details
-                {
-                    IndexNo = member.IndexNo,
-                    Name = member.Name,
-                    Email = member.Email,
-                    Age = member.Age
-                };
-            }
-            return null;
+                con.Open();
+                MySqlCommand cmd = new MySqlCommand("SELECT * FROM members WHERE `Index` = @Index", con);
+                cmd.Parameters.AddWithValue("@Index", index);
 
+                MySqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return new Details
+                    {
+                        IndexNo = Convert.ToInt32(reader["Index"]),
+                        Name = reader["Name"].ToString(),
+                        Email = reader["Email"].ToString(),
+                        Age = Convert.ToInt32(reader["age"])
+                    };
+                }
+
+                reader.Close();
+            }
+
+            return null;
         }
 
         public static void DeleteMemberByIndex(int index)
         {
-            var member = _details.FirstOrDefault(x => (x.IndexNo == index));
-            if (member != null)
+            using (MySqlConnection con = new MySqlConnection(connectionString))
             {
-                _details.Remove(member);
+                con.Open();
+                MySqlCommand deleteCmd = new MySqlCommand("DELETE FROM members WHERE `Index` = @IndexToDelete", con);
+                deleteCmd.Parameters.AddWithValue("@IndexToDelete", index);
+
+                int rowsDeleted = deleteCmd.ExecuteNonQuery();
+                Console.WriteLine($"{rowsDeleted} row(s) deleted.");
             }
         }
 
         public static void AddMember(Details details)
         {
-            var maxIndex = _details.Max(x => x.IndexNo);
-            details.IndexNo = maxIndex + 1;
-            _details.Add(details);
+            using (MySqlConnection con = new MySqlConnection(connectionString))
+            {
+                con.Open();
+                MySqlCommand insertCmd = new MySqlCommand("INSERT INTO members (Name, Email, Age) VALUES (@Name, @Email, @Age)", con);
+
+                insertCmd.Parameters.AddWithValue("@Name", details.Name);
+                insertCmd.Parameters.AddWithValue("@Email", details.Email);
+                insertCmd.Parameters.AddWithValue("@Age", details.Age);
+
+                insertCmd.ExecuteNonQuery();
+            }
         }
     }
 }
