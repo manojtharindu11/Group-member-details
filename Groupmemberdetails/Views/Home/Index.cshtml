@@ -1,0 +1,38 @@
+﻿@section title {
+    <h3>Group member details</h3>
+}
+
+@model List<Details>
+
+<a asp-action="add" asp-controller="home" class="btn btn-primary mb-3">Add new member +</a>
+
+@if (Model != null && Model.Count() > 0)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">Index</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Age</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            @foreach(var member in Model)
+            {
+                <tr>
+                    <td scope="row">@member.IndexNo</td>
+                    <td scope="row">@member.Name</td>
+                    <td scope="row">@member.Email</td>
+                    <td scope="row">@member.Age</td>
+                    <td scope="row">
+                        <span class="list-inline-item"><a class="link-primary" asp-controller="home" asp-action="edit" asp-route-index="@member.IndexNo">Edit</a></span>
+                        <span class ="list-inline-item"><a class="link-danger" asp-controller="home" asp-action="delete" asp-route-index="@member.IndexNo">Delete</a></span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
